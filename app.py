@@ -3,11 +3,13 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from helpers import apology, login_required
+
 # connecting to the database
-connection = sqlite3.connect("peak.db")
+db_connection = sqlite3.connect("peak.db")
  
 # cursor
-crsr = connection.cursor()
+crsr = db_connection.cursor()
 
 # Configure application
 app = Flask(__name__)
@@ -36,9 +38,7 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute(
-            "SELECT * FROM users WHERE username = ?", request.form.get("username")
-        )
+        rows = crsr.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username"),)).fetchall()
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(
@@ -54,7 +54,7 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html")
+        return render_template("index.html")
 
 
 @app.route("/logout")
@@ -68,6 +68,6 @@ def logout():
     return redirect("/")
 
 @app.route("/")
-@login_required
+#@login_required
 def index():
     return apology("oops")
