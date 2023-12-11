@@ -125,17 +125,18 @@ def current():
 def past():
     return render_template("past.html")
 
-@app.route("/newcourse")
+@app.route("/newcourse", methods=["GET", "POST"])
 @login_required
 def newcourse():
     #post and get methods 
     if request.method == "POST":
-        pass #change when finished
 
         pName = request.form.get("periodname")
+        print("pName:", pName) 
 
         if pName == "newperiod":
             return render_template("newperiod.html")
+        
 
         cName = request.form.get("coursename")
         cCredits = request.form.get("credits")
@@ -147,7 +148,7 @@ def newcourse():
     else:
         return render_template("newcourse.html")
 
-@app.route("/newperiod")
+@app.route("/newperiod", methods=["GET", "POST"])
 @login_required
 def newperiod():
     
