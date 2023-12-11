@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    New Course
+{% endblock %}
+
+{% block main %}
+    <h1>Course Details:</h1>
+
+    <form>
+        <div class="mb-3">
+            <select name="periodname">
+                <option disabled selected>Period</option>
+                {% for period in periods %}
+                <option value="{{ period.period }}">{{ period.period }}</option>
+                {% endfor %}
+                <option value="newperiod">Add to new period</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="coursename" name="coursename" placeholder="Course Name" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" id="credits" name="credits" placeholder="Credits" type="number">
+        </div>
+        <button class="btn btn-primary" type="submit">Register Course</button>
+    </form>
+{% endblock %}

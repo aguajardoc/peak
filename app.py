@@ -54,7 +54,7 @@ def register():
             hashedpword)).fetchall()
         
 
-        session["username"] = request.form.get("username")
+        session["user_id"] = crsr.lastrowid
 
         # Redirect user to home page
         return redirect("/")
@@ -81,19 +81,17 @@ def login():
         elif not request.form.get("password"):
             return apology("must provide password", 403)
 
-            "CREATE TABLE stocks (user_id INTEGER, symbol TEXT, name TEXT, shares INTEGER, price REAL, total REAL)"
-
         # Query database for username
         rows = crsr.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username"),)).fetchall()
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
+            rows[0][2], request.form.get("password")
         ):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = rows[0][0]
 
         # Redirect user to home page
         return redirect("/")
@@ -114,6 +112,50 @@ def logout():
     return redirect("/")
 
 @app.route("/")
-#@login_required
 def index():
     return render_template("index.html")
+
+@app.route("/current")
+@login_required
+def current():
+    return render_template("current.html")
+
+@app.route("/past")
+@login_required
+def past():
+    return render_template("past.html")
+
+@app.route("/newcourse")
+@login_required
+def newcourse():
+    #post and get methods 
+    if request.method == "POST":
+        pass #change when finished
+
+        pName = request.form.get("periodname")
+
+        if pName == "newperiod":
+            return render_template("newperiod.html")
+
+        cName = request.form.get("coursename")
+        cCredits = request.form.get("credits")
+
+        # TODO: Insert data into period
+
+
+
+    else:
+        return render_template("newcourse.html")
+
+@app.route("/newperiod")
+@login_required
+def newperiod():
+    
+    if request.method == "POST":
+        pName = request.form.get("periodname")
+        pStart = request.form.get("periodstart")
+        pEnd = request.form.get("periodend")
+
+        # TODO: add to database
+    else:
+        render_template("newperiod.html")

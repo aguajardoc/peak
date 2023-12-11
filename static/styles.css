@@ -31,3 +31,15 @@ table td {
 tbody tr:nth-of-type(odd) {
     background-color: rgb(179, 208, 255, 0.3)
 }
+
+h1 {
+    font-size: 60px;
+}
+
+#left {
+    text-align: left;
+}
+
+#right {
+    text-align: right;
+}

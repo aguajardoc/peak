@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}
+New Period
+{% endblock %}
+
+{% block main %}
+    <h1>Add a New Period</h1>
+
+    <form>
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="periodname" name="periodname" placeholder="Period Name" type="text">
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control mx-auto w-auto" id="periodstart" name="periodstart" placeholder="Period Start Date" type="date">
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control mx-auto w-auto" id="periodend" name="periodend" placeholder="Period End Date" type="date">
+        </div>
+        <button class="btn btn-primary" type="submit">Register New Period</button>
+    </form>
+{% endblock %}
