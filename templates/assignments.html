@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Assignments
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <h1 class="my-4">List of Assignments for {{ course_name }}</h1>
+
+    <div class="mb-3">
+        <a href="/newassignment?course_name={{ course_name }}" class="btn btn-primary">
+            <img src="/static/plusbutton.png" width="20px" height="20px"></img>
+            Add New Assignment
+        </a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Course Name</th>
+                <th scope="col">Credits</th>
+                <th scope="col">Number of Assignments</th>
+                <th scope="col">Grade</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td> <a href="/assignments?course={{ course[0] }}">{{ course[0] }}</a></td>
+                <td>{{ course[1] }}</td>
+                <td>{{ course[2] }}</td>
+                <td>{{ course[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

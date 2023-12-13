@@ -5,18 +5,35 @@ Current Courses
 {% endblock %}
 
 {% block main %}
-    <h1>List of Current Courses</h1>
+    <div class="container">
+        <h1 class="my-4">List of Current Courses</h1>
 
-    <h3 id="left" style="color: rgb(173, 173, 173)">
-        <span style="padding-right:3px; padding-top: 3px; display:inline-block;">
-
-            <a href="/newcourse">
-                <img class="manImg" src="/static/plusbutton.png" width="40px" height="40px"></img>
+        <div class="mb-3">
+            <a href="/newcourse" class="btn btn-primary">
+                <img src="/static/plusbutton.png" width="20px" height="20px"></img>
+                Add New Course
             </a>
-        
-        </span>
-        
-        Add New Course
-    </h3>
+        </div>
 
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Course Name</th>
+                    <th scope="col">Credits</th>
+                    <th scope="col">Number of Assignments</th>
+                    <th scope="col">Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td> <a href="/assignments?course={{ course[0] }}">{{ course[0] }}</a></td>
+                    <td>{{ course[1] }}</td>
+                    <td>{{ course[2] }}</td>
+                    <td>{{ course[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

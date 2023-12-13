@@ -119,7 +119,8 @@ def index():
 @app.route("/current")
 @login_required
 def current():
-    return render_template("current.html")
+    courses = crsr.execute("SELECT course_name, credits, assignmentcount, grade FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+    return render_template("current.html", courses=courses)
 
 @app.route("/past")
 @login_required
@@ -142,12 +143,12 @@ def newcourse():
         cName = request.form.get("coursename")
         cCredits = request.form.get("credits")
 
-        # TODO: Get period ID
+        # Get period ID
         # periods: period_id, period_name, period_start, period_end, grade, coursecount, user_id
 
         pID = crsr.execute("SELECT period_id FROM periods WHERE period_name = ? AND user_id = ?", (pName,session["user_id"])).fetchall()
 
-        # TODO: Insert data into course
+        # Insert data into course
 
         crsr.execute("INSERT INTO courses (course_name, credits, grade, assignmentcount, user_id, period_id) VALUES(?, ?, 0, 0, ?, ?)", (cName, cCredits, session["user_id"], pID[0][0])).fetchall()
         db_connection.commit()
@@ -171,7 +172,7 @@ def newperiod():
         pStart = request.form.get("periodstart")
         pEnd = request.form.get("periodend")
 
-        # TODO: add to database
+        # add to database
         # periods: period_id, period_name, period_start, period_end, grade, coursecount, user_id
         crsr.execute("INSERT INTO periods (period_name, period_start, period_end, grade, coursecount, user_id) VALUES(?, ?, ?, 0, 0, ?)", (pName, pStart, pEnd, session["user_id"])).fetchall()
         db_connection.commit()
@@ -180,3 +181,35 @@ def newperiod():
 
     else:
         return render_template("newperiod.html")
+
+@app.route('/assignments')
+def assignments():
+
+    course_name = request.args.get('course')
+
+    return render_template("assignments.html", course_name=course_name)
+    
+@app.route('/newassignment', methods=["GET", "POST"])
+def newassignment():
+
+    if request.method == "POST":
+        assignment_name = request.form.get("assignment_name")
+        assignment_grade = request.form.get("assignment_grade")
+        assignment_weight = request.form.get("assignment_weight")
+        assignment_date = request.form.get("assignment_date")
+
+        course_name = request.form.get("course_name")
+
+        cId = crsr.execute("SELECT course_id FROM courses WHERE course_name = ? AND user_id = ?", (course_name,session["user_id"])).fetchall()
+
+        pId = crsr.execute("SELECT period_id FROM courses WHERE course_id = ? AND user_id = ?", (cId,session["user_id"])).fetchall()
+
+        crsr.execute("INSERT INTO assignments (assignment_name, grade, weight, date, user_id, period_id, course_id) VALUES(?, ?, ?, ?, ?, ?, ?)", (assignment_name, assignment_grade, assignment_weight, assignment_date, session["user_id"], pId, cId)).fetchall()
+        db_connection.commit()
+
+        return redirect("/assignments", assignment_name=assignment_name, assignment_grade=assignment_grade, assignment_weight=assignment_weight, assignment_date=assignment_date)
+    else:
+
+        course_name = request.args.get('course_name')
+
+        return render_template("newassignment.html", course_name=course_name)

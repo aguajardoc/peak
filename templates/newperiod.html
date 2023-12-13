@@ -5,18 +5,23 @@ New Period
 {% endblock %}
 
 {% block main %}
-    <h1>Add a New Period</h1>
+<div class="container">
+    <h1 class="text-center my-4">Add a New Period</h1>
 
     <form action="/newperiod" method="post">
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="periodname" name="periodname" placeholder="Period Name" type="text">
+        <div class="form-group">
+            <label for="periodname">Period Name</label>
+            <input autocomplete="off" autofocus class="form-control" id="periodname" name="periodname" placeholder="Enter period name" type="text">
         </div>
-        <div class="mb-3">
-            <h5>Period Start Date:<span><input autocomplete="off" class="form-control mx-auto w-auto" id="periodstart" name="periodstart" placeholder="Period Start Date" type="date"></span></h5>
+        <div class="form-group">
+            <label for="periodstart">Period Start Date</label>
+            <input autocomplete="off" class="form-control" id="periodstart" name="periodstart" type="date">
         </div>
-        <div class="mb-3">
-            <h5>Period End Date:<span><input autocomplete="off" class="form-control mx-auto w-auto" id="periodend" name="periodend" placeholder="Period End Date" type="date"></span></h5>
+        <div class="form-group">
+            <label for="periodend">Period End Date</label>
+            <input autocomplete="off" class="form-control" id="periodend" name="periodend" type="date">
         </div>
-        <button class="btn btn-primary" type="submit">Register New Period</button>
+        <button class="btn btn-primary mt-3" type="submit">Register New Period</button>
     </form>
+</div>
 {% endblock %}
