@@ -52,6 +52,7 @@ def register():
             "INSERT INTO users (username, hash) VALUES(?, ?)",
             (request.form.get("username"),
             hashedpword)).fetchall()
+        db_connection.commit()
         
 
         session["user_id"] = crsr.lastrowid
@@ -141,12 +142,25 @@ def newcourse():
         cName = request.form.get("coursename")
         cCredits = request.form.get("credits")
 
-        # TODO: Insert data into period
+        # TODO: Get period ID
+        # periods: period_id, period_name, period_start, period_end, grade, coursecount, user_id
 
+        pID = crsr.execute("SELECT period_id FROM periods WHERE period_name = ? AND user_id = ?", (pName,session["user_id"])).fetchall()
 
+        # TODO: Insert data into course
+
+        crsr.execute("INSERT INTO courses (course_name, credits, grade, assignmentcount, user_id, period_id) VALUES(?, ?, 0, 0, ?, ?)", (cName, cCredits, session["user_id"], pID[0][0])).fetchall()
+        db_connection.commit()
+        # Update periods table accordingly, for the course count
+
+        crsr.execute("UPDATE periods SET coursecount = coursecount + 1 WHERE period_id = ?", (pID[0][0],)).fetchall()
+        db_connection.commit()
+
+        return redirect("/current")
 
     else:
-        return render_template("newcourse.html")
+        periods = crsr.execute("SELECT period_name FROM periods WHERE user_id = ?", (session["user_id"],)).fetchall()
+        return render_template("newcourse.html", periods=periods)
 
 @app.route("/newperiod", methods=["GET", "POST"])
 @login_required
@@ -158,5 +172,11 @@ def newperiod():
         pEnd = request.form.get("periodend")
 
         # TODO: add to database
+        # periods: period_id, period_name, period_start, period_end, grade, coursecount, user_id
+        crsr.execute("INSERT INTO periods (period_name, period_start, period_end, grade, coursecount, user_id) VALUES(?, ?, ?, 0, 0, ?)", (pName, pStart, pEnd, session["user_id"])).fetchall()
+        db_connection.commit()
+
+        return redirect("/newcourse")
+
     else:
-        render_template("newperiod.html")
+        return render_template("newperiod.html")

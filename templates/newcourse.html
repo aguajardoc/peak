@@ -12,7 +12,7 @@
             <select name="periodname">
                 <option disabled selected>Period</option>
                 {% for period in periods %}
-                <option value="{{ period.period }}">{{ period.period }}</option>
+                <option value="{{ period[0] }}">{{ period[0] }}</option>
                 {% endfor %}
                 <option value="newperiod">Add to new period</option>
             </select>
