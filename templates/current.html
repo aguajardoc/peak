@@ -30,9 +30,11 @@ Current Courses
                     <td> <a href="/assignments?course={{ course[0] }}">{{ course[0] }}</a></td>
                     <td>{{ course[1] }}</td>
                     <td>{{ course[2] }}</td>
-                    <td>{{ course[3] }}</td>
+                    <td>{{ course[3] | round(2) }}</td>
                 </tr>
                 {% endfor %}
+
+                <!-- Add two rows at the bottom with the weighted and unweighted grades, discard periods and dates-->
             </tbody>
         </table>
     </div>

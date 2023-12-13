@@ -18,19 +18,17 @@ Assignments
     <table class="table">
         <thead>
             <tr>
-                <th scope="col">Course Name</th>
-                <th scope="col">Credits</th>
-                <th scope="col">Number of Assignments</th>
-                <th scope="col">Grade</th>
+                <th scope="col">Assignment</th>
+                <th scope="col">Weight (%)</th>
+                <th scope="col">Grade (%)</th>
             </tr>
         </thead>
         <tbody>
-            {% for course in courses %}
+            {% for assignment in assignments %}
             <tr>
-                <td> <a href="/assignments?course={{ course[0] }}">{{ course[0] }}</a></td>
-                <td>{{ course[1] }}</td>
-                <td>{{ course[2] }}</td>
-                <td>{{ course[3] }}</td>
+                <td> <a href="/assignments?course={{ course_name }}">{{ assignment[0] }}</a></td>
+                <td>{{ assignment[1] }}</td>
+                <td>{{ assignment[2] }}</td>
             </tr>
             {% endfor %}
         </tbody>

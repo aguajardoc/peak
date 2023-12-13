@@ -186,28 +186,46 @@ def newperiod():
 def assignments():
 
     course_name = request.args.get('course')
+    cId = crsr.execute("SELECT course_id FROM courses WHERE course_name = ? AND user_id = ?", (course_name,session["user_id"])).fetchall()
 
-    return render_template("assignments.html", course_name=course_name)
+    assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+    return render_template("assignments.html", course_name=course_name, assignments=assignments)
     
 @app.route('/newassignment', methods=["GET", "POST"])
 def newassignment():
 
     if request.method == "POST":
-        assignment_name = request.form.get("assignment_name")
-        assignment_grade = request.form.get("assignment_grade")
-        assignment_weight = request.form.get("assignment_weight")
-        assignment_date = request.form.get("assignment_date")
-
-        course_name = request.form.get("course_name")
+        assignment_name = request.form.get("assignmentname")
+        assignment_grade = request.form.get("grade")
+        assignment_weight = request.form.get("weight")
+        course_name = request.form.get("coursename")
 
         cId = crsr.execute("SELECT course_id FROM courses WHERE course_name = ? AND user_id = ?", (course_name,session["user_id"])).fetchall()
 
-        pId = crsr.execute("SELECT period_id FROM courses WHERE course_id = ? AND user_id = ?", (cId,session["user_id"])).fetchall()
+        totalweight = crsr.execute("SELECT SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+        if not totalweight or totalweight[0][0] is None:
+            totalweightnew = 0
+        else:
+            totalweightnew = totalweight[0][0]
 
-        crsr.execute("INSERT INTO assignments (assignment_name, grade, weight, date, user_id, period_id, course_id) VALUES(?, ?, ?, ?, ?, ?, ?)", (assignment_name, assignment_grade, assignment_weight, assignment_date, session["user_id"], pId, cId)).fetchall()
+        if float(assignment_weight) + float(totalweightnew) > 100:
+            return apology("total weight of assignments exceeds 100%, try again", 400)
+
+        pId = crsr.execute("SELECT period_id FROM courses WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        crsr.execute("INSERT INTO assignments (assignment_name, grade, weight, user_id, period_id, course_id) VALUES(?, ?, ?, ?, ?, ?)", (assignment_name, assignment_grade, assignment_weight, session["user_id"], pId[0][0], cId[0][0])).fetchall()
         db_connection.commit()
 
-        return redirect("/assignments", assignment_name=assignment_name, assignment_grade=assignment_grade, assignment_weight=assignment_weight, assignment_date=assignment_date)
+        crsr.execute("UPDATE courses SET assignmentcount = assignmentcount + 1 WHERE course_id = ?", (cId[0][0],)).fetchall()
+        db_connection.commit()
+
+        crsr.execute("UPDATE courses SET grade = (SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?) WHERE course_id = ?", (cId[0][0],session["user_id"],cId[0][0])).fetchall()
+        db_connection.commit()
+
+        assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        return render_template("assignments.html", assignments=assignments, course_name=course_name)
     else:
 
         course_name = request.args.get('course_name')
