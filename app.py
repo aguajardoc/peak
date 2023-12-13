@@ -132,55 +132,20 @@ def past():
 def newcourse():
     #post and get methods 
     if request.method == "POST":
-
-        pName = request.form.get("periodname")
-        print("pName:", pName) 
-
-        if pName == "newperiod":
-            return render_template("newperiod.html")
         
-
         cName = request.form.get("coursename")
         cCredits = request.form.get("credits")
 
-        # Get period ID
-        # periods: period_id, period_name, period_start, period_end, grade, coursecount, user_id
-
-        pID = crsr.execute("SELECT period_id FROM periods WHERE period_name = ? AND user_id = ?", (pName,session["user_id"])).fetchall()
-
         # Insert data into course
 
-        crsr.execute("INSERT INTO courses (course_name, credits, grade, assignmentcount, user_id, period_id) VALUES(?, ?, 0, 0, ?, ?)", (cName, cCredits, session["user_id"], pID[0][0])).fetchall()
-        db_connection.commit()
-        # Update periods table accordingly, for the course count
-
-        crsr.execute("UPDATE periods SET coursecount = coursecount + 1 WHERE period_id = ?", (pID[0][0],)).fetchall()
+        crsr.execute("INSERT INTO courses (course_name, credits, grade, assignmentcount, user_id) VALUES(?, ?, 0, 0, ?)", (cName, cCredits, session["user_id"])).fetchall()
         db_connection.commit()
 
         return redirect("/current")
 
     else:
-        periods = crsr.execute("SELECT period_name FROM periods WHERE user_id = ?", (session["user_id"],)).fetchall()
-        return render_template("newcourse.html", periods=periods)
 
-@app.route("/newperiod", methods=["GET", "POST"])
-@login_required
-def newperiod():
-    
-    if request.method == "POST":
-        pName = request.form.get("periodname")
-        pStart = request.form.get("periodstart")
-        pEnd = request.form.get("periodend")
-
-        # add to database
-        # periods: period_id, period_name, period_start, period_end, grade, coursecount, user_id
-        crsr.execute("INSERT INTO periods (period_name, period_start, period_end, grade, coursecount, user_id) VALUES(?, ?, ?, 0, 0, ?)", (pName, pStart, pEnd, session["user_id"])).fetchall()
-        db_connection.commit()
-
-        return redirect("/newcourse")
-
-    else:
-        return render_template("newperiod.html")
+        return render_template("newcourse.html")
 
 @app.route('/assignments')
 def assignments():
@@ -212,9 +177,7 @@ def newassignment():
         if float(assignment_weight) + float(totalweightnew) > 100:
             return apology("total weight of assignments exceeds 100%, try again", 400)
 
-        pId = crsr.execute("SELECT period_id FROM courses WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
-
-        crsr.execute("INSERT INTO assignments (assignment_name, grade, weight, user_id, period_id, course_id) VALUES(?, ?, ?, ?, ?, ?)", (assignment_name, assignment_grade, assignment_weight, session["user_id"], pId[0][0], cId[0][0])).fetchall()
+        crsr.execute("INSERT INTO assignments (assignment_name, grade, weight, user_id, course_id) VALUES(?, ?, ?, ?, ?)", (assignment_name, assignment_grade, assignment_weight, session["user_id"], cId[0][0])).fetchall()
         db_connection.commit()
 
         crsr.execute("UPDATE courses SET assignmentcount = assignmentcount + 1 WHERE course_id = ?", (cId[0][0],)).fetchall()

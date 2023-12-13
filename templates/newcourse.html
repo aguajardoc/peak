@@ -9,15 +9,6 @@
 
     <form action="/newcourse" method="post">
         <div class="mb-3">
-            <select name="periodname">
-                <option disabled selected>Period</option>
-                {% for period in periods %}
-                <option value="{{ period[0] }}">{{ period[0] }}</option>
-                {% endfor %}
-                <option value="newperiod">Add to new period</option>
-            </select>
-        </div>
-        <div class="mb-3">
             <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="coursename" name="coursename" placeholder="Course Name" type="text">
         </div>
         <div class="mb-3">
