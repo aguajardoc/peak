@@ -43,3 +43,31 @@ h1 {
 #right {
     text-align: right;
 }
+
+@keyframes slideInFromLeft {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  .animate-slide {
+    animation: 1s ease-out 0s 1 slideInFromLeft;
+  }
+  
+  .animate-fade {
+    animation: 2s ease-in-out 0s 1 fadeIn;
+  }

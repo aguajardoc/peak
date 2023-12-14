@@ -119,13 +119,15 @@ def index():
 @app.route("/current")
 @login_required
 def current():
-    courses = crsr.execute("SELECT course_name, credits, assignmentcount, grade FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
-    return render_template("current.html", courses=courses)
 
-@app.route("/past")
-@login_required
-def past():
-    return render_template("past.html")
+    # Fetch course data
+    courses = crsr.execute("SELECT course_name, credits, assignmentcount, grade FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+
+    # Fetch (while calculating) unweighted and weighted GPA for all courses
+    unweighted_gpa = crsr.execute("SELECT SUM(grade) / COUNT(grade) FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+    weighted_gpa = crsr.execute("SELECT SUM(grade * credits) / SUM(credits) FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+
+    return render_template("current.html", courses=courses, unweighted_gpa=unweighted_gpa[0][0], weighted_gpa=weighted_gpa[0][0])
 
 @app.route("/newcourse", methods=["GET", "POST"])
 @login_required
@@ -150,12 +152,21 @@ def newcourse():
 @app.route('/assignments')
 def assignments():
 
+    # Fetch course name from URL, and ID from database
     course_name = request.args.get('course')
     cId = crsr.execute("SELECT course_id FROM courses WHERE course_name = ? AND user_id = ?", (course_name,session["user_id"])).fetchall()
 
+    # Fetch assignments from database
     assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
 
-    return render_template("assignments.html", course_name=course_name, assignments=assignments)
+    # Fetch (while calculating) average grade for course
+    avg = crsr.execute("SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+    avg2 = crsr.execute("SELECT SUM(0.01 * grade * weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+    # Fetch the max possible grade for the course at that point
+    max = crsr.execute("SELECT SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+    return render_template("assignments.html", course_name=course_name, assignments=assignments, avg=avg[0][0], avg2=avg2[0][0], max=max[0][0])
     
 @app.route('/newassignment', methods=["GET", "POST"])
 def newassignment():
