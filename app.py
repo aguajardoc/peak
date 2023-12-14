@@ -314,6 +314,8 @@ def editassignment():
         
         # Fetch assignments from database
         assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+        crsr.execute("UPDATE courses SET grade = (SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?) WHERE course_id = ?", (cId[0][0],session["user_id"],cId[0][0])).fetchall()
+        db_connection.commit()
 
         # Fetch (while calculating) average grade for course with updated assignment
         avg = crsr.execute("SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
