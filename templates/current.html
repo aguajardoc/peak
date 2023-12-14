@@ -14,7 +14,12 @@ Current Courses
                 Add New Course
             </a>
         </div>
-
+        {% if courses == [] %}
+        <div class="alert alert-primary mb-0 text-center" role="alert">
+            No courses have been added, add your first one!
+        </div>
+        {% endif %}
+        {% if courses != [] %}
         <table class="table">
             <thead>
                 <tr>
@@ -49,5 +54,6 @@ Current Courses
                 </tr>
             </tbody>
         </table>
+        {% endif %}
     </div>
 {% endblock %}
