@@ -150,6 +150,7 @@ def newcourse():
         return render_template("newcourse.html")
 
 @app.route('/assignments')
+@login_required
 def assignments():
 
     # Fetch course name from URL, and ID from database
@@ -169,6 +170,7 @@ def assignments():
     return render_template("assignments.html", course_name=course_name, assignments=assignments, avg=avg[0][0], avg2=avg2[0][0], max=max[0][0])
     
 @app.route('/newassignment', methods=["GET", "POST"])
+@login_required
 def newassignment():
 
     if request.method == "POST":
@@ -205,3 +207,33 @@ def newassignment():
         course_name = request.args.get('course_name')
 
         return render_template("newassignment.html", course_name=course_name)
+    
+@app.route('/editcourse', methods=["GET", "POST"])
+@login_required
+def editcourse():
+
+    if request.method == "POST":
+        course_credits = request.form.get("credits")
+        course_id = request.form.get("courseid")
+        course_name = request.form.get("coursename")
+
+        crsr.execute("UPDATE courses SET course_name = ?, credits = ? WHERE course_id = ?", (course_name, course_credits, course_id)).fetchall()
+        db_connection.commit()
+
+        # Resubmit current course data
+
+        # Fetch course data
+        courses = crsr.execute("SELECT course_name, credits, assignmentcount, grade FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+
+        # Fetch (while calculating) unweighted and weighted GPA for all courses
+        unweighted_gpa = crsr.execute("SELECT SUM(grade) / COUNT(grade) FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+        weighted_gpa = crsr.execute("SELECT SUM(grade * credits) / SUM(credits) FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+
+        return render_template("current.html", courses=courses, unweighted_gpa=unweighted_gpa[0][0], weighted_gpa=weighted_gpa[0][0])
+    else:
+
+        course_name = request.args.get('course_name')
+        cId = crsr.execute("SELECT course_id FROM courses WHERE course_name = ? AND user_id = ?", (course_name,session["user_id"])).fetchall()
+        course_credits = crsr.execute("SELECT credits FROM courses WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        return render_template("editcourse.html", course_name=course_name, course_credits=course_credits[0][0], cId=cId[0][0])
