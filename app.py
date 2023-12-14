@@ -213,7 +213,15 @@ def newassignment():
 
         assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
 
-        return render_template("assignments.html", assignments=assignments, course_name=course_name)
+        # Fetch (while calculating) average grade for course
+        avg = crsr.execute("SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+        avg2 = crsr.execute("SELECT SUM(0.01 * grade * weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        # Fetch the max possible grade for the course at that point
+        max = crsr.execute("SELECT SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        return render_template("assignments.html", course_name=course_name, assignments=assignments, avg=avg[0][0], avg2=avg2[0][0], max=max[0][0])
+
     else:
 
         course_name = request.args.get('course_name')
