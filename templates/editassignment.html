@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Peak
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <h1 class="text-center my-4">Edit Information for {{ assignments[0][0] }}</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <form action="/editassignment" method="post">
+                <input type="hidden" autocomplete="off" autofocus class="form-control" id="assignmentid" name="assignmentid" value="{{ assignment_id }}">
+                <div class="form-group">
+                    <label for="assignmentname">assignment Name</label>
+                    <input autocomplete="off" autofocus class="form-control" id="assignmentname" name="assignmentname" placeholder="{{ assignments[0][0] }}" type="text">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight</label>
+                    <div class="input-group">
+                        <input autocomplete="off" class="form-control" id="weight" name="weight" placeholder="{{ assignments[0][1] }}" type="number" min="0" step="any">
+                        <div class="input-group-append">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="grade">Grade</label>
+                    <div class="input-group">
+                        <input autocomplete="off" class="form-control" id="grade" name="grade" placeholder="{{ assignments[0][2] }}" type="number" min="0" step="any">
+                        <div class="input-group-append">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" type="submit">Register Changes</button>
+                <br>
+            </form>
+            
+            <form action="/deleteassignment" method="post" onsubmit="return confirm('Are you COMPLETELY sure you want to delete all data for this assignment? It cannot be recovered');">
+                <input type="hidden" autocomplete="off" autofocus class="form-control" id="assignmentid" name="assignmentid" value="{{ assignment_id }}">
+                <button class="btn btn-danger mt-3" type="submit">Delete assignment</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

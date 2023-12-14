@@ -21,7 +21,12 @@ Assignments
             Edit Course
         </a>
     </div>
-
+    {% if assignments == [] %}
+    <div class="alert alert-primary mb-0 text-center" role="alert">
+        No assignments have been added for this course.
+    </div>
+    {% endif %}
+    {% if assignments != [] %}
     <table class="table">
         <thead>
             <tr>
@@ -33,7 +38,7 @@ Assignments
         <tbody>
             {% for assignment in assignments %}
             <tr>
-                <td> <a href="/assignments?course={{ course_name }}">{{ assignment[0] }}</a></td>
+                <td> <a href="/editassignment?assignment={{ assignment[0] }}">{{ assignment[0] }}</a></td>
                 <td>{{ assignment[1] }}</td>
                 <td>{{ assignment[2] }}</td>
             </tr>
@@ -53,6 +58,6 @@ Assignments
 
         </tbody>
     </table>
+    {% endif %}
 </div>
-
 {% endblock %}

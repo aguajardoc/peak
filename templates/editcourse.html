@@ -24,7 +24,11 @@ Peak
                 </div>
                 <button class="btn btn-primary mt-3" type="submit">Register Changes</button>
                 <br>
-                <button class="btn btn-primary mt-3" type="submit">Delete Course</button>
+            </form>
+            
+            <form action="/deletecourse" method="post" onsubmit="return confirm('Are you COMPLETELY sure you want to delete all data for this course? It cannot be recovered');">
+                <input type="hidden" autocomplete="off" autofocus class="form-control" id="courseid" name="courseid" value="{{ cId }}">
+                <button class="btn btn-danger mt-3" type="submit">Delete Course</button>
             </form>
         </div>
     </div>

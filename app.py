@@ -138,8 +138,20 @@ def newcourse():
         cName = request.form.get("coursename")
         cCredits = request.form.get("credits")
 
-        # Insert data into course
+        if not cName:
+            return apology("must provide course name", 400)
+        if not cCredits:
+            return apology("must provide credits", 400)
+        if not cCredits.isdigit():
+            return apology("credits must be a number", 400)
+        
+        usednames = crsr.execute("SELECT course_name FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
 
+        for name in usednames:
+            if cName == name[0]:
+                return apology("course name already in use", 400)
+
+        # Insert data into course
         crsr.execute("INSERT INTO courses (course_name, credits, grade, assignmentcount, user_id) VALUES(?, ?, 0, 0, ?)", (cName, cCredits, session["user_id"])).fetchall()
         db_connection.commit()
 
@@ -237,3 +249,110 @@ def editcourse():
         course_credits = crsr.execute("SELECT credits FROM courses WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
 
         return render_template("editcourse.html", course_name=course_name, course_credits=course_credits[0][0], cId=cId[0][0])
+    
+@app.route("/deletecourse", methods=["POST"])
+@login_required
+def deletecourse():
+    courseid = request.form.get("courseid")
+
+    # Delete the course from the database, along with its corresponding assignments
+    
+    crsr.execute("DELETE FROM courses WHERE course_id = ?", (courseid,))
+    db_connection.commit()
+
+    crsr.execute("DELETE FROM assignments WHERE course_id = ?", (courseid,))
+    db_connection.commit()
+
+    # Resubmit updated course data, without the deleted course
+
+    # Fetch course data
+    courses = crsr.execute("SELECT course_name, credits, assignmentcount, grade FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+
+    # Fetch (while calculating) unweighted and weighted GPA for all courses
+    unweighted_gpa = crsr.execute("SELECT SUM(grade) / COUNT(grade) FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+    weighted_gpa = crsr.execute("SELECT SUM(grade * credits) / SUM(credits) FROM courses WHERE user_id = ?", (session["user_id"],)).fetchall()
+
+    return render_template("current.html", courses=courses, unweighted_gpa=unweighted_gpa[0][0], weighted_gpa=weighted_gpa[0][0])
+
+@app.route('/editassignment', methods=["GET", "POST"])
+@login_required
+def editassignment():
+
+    if request.method == "POST":
+
+        # Fetch new data from form
+        assignment_name = request.form.get("assignmentname")
+        assignment_grade = request.form.get("grade")
+        assignment_weight = request.form.get("weight")
+        assignment_id = request.form.get("assignmentid")
+
+        # Fetch course data
+        cId = crsr.execute("SELECT course_id FROM assignments WHERE assignment_id = ?", (assignment_id,)).fetchall()
+        course_name = crsr.execute("SELECT course_name FROM courses WHERE course_id = ?", (cId[0][0],)).fetchall()
+
+        # Validation of new weight
+        totalweight = crsr.execute("SELECT SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+        oldweight = crsr.execute("SELECT weight FROM assignments WHERE assignment_id = ? AND user_id = ?", (assignment_id,session["user_id"])).fetchall()
+        if not totalweight or totalweight[0][0] is None:
+            totalweightnew = 0
+        else:
+            totalweightnew = totalweight[0][0] - oldweight[0][0]
+
+        if float(assignment_weight) + float(totalweightnew) > 100:
+            return apology("total weight of assignments exceeds 100%, try again", 400)
+
+        # Update assignment data
+        crsr.execute("UPDATE assignments SET assignment_name = ?, grade = ?, weight = ? WHERE assignment_id = ?", (assignment_name, assignment_grade, assignment_weight, assignment_id)).fetchall()
+        
+        # Fetch assignments from database
+        assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        # Fetch (while calculating) average grade for course with updated assignment
+        avg = crsr.execute("SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+        avg2 = crsr.execute("SELECT SUM(0.01 * grade * weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        # Fetch the max possible grade for the course at that point
+        max = crsr.execute("SELECT SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+        return render_template("assignments.html", course_name=course_name[0][0], assignments=assignments, avg=avg[0][0], avg2=avg2[0][0], max=max[0][0])
+
+    else:
+
+        assignment_name = request.args.get('assignment')
+        assignment_id = crsr.execute("SELECT assignment_id FROM assignments WHERE assignment_name = ? AND user_id = ?", (assignment_name,session["user_id"])).fetchall()
+        
+        assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE assignment_id = ? AND user_id = ?", (assignment_id[0][0],session["user_id"])).fetchall()   
+
+        return render_template("editassignment.html", assignments=assignments, assignment_id=assignment_id[0][0])
+ 
+
+@app.route("/deleteassignment", methods=["POST"])
+@login_required
+def deleteassignment():
+    assignmentid = request.form.get("assignmentid")
+
+    # Delete the assignment from the database, update assignmentcount
+
+    cId = crsr.execute("SELECT course_id FROM assignments WHERE assignment_id = ?", (assignmentid,)).fetchall()
+
+    crsr.execute("UPDATE courses SET assignmentcount = assignmentcount - 1 WHERE course_id = (SELECT course_id FROM assignments WHERE assignment_id = ?)", (assignmentid,))
+    db_connection.commit()
+    
+    crsr.execute("DELETE FROM assignments WHERE assignment_id = ?", (assignmentid,))
+    db_connection.commit()
+
+    # Resubmit updated course data, without the deleted assignment
+
+    # Fetch assignments from database+
+
+    course_name = crsr.execute("SELECT course_name FROM courses WHERE course_id = ?", (cId[0][0],)).fetchall()
+    assignments = crsr.execute("SELECT assignment_name, weight, grade FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+    # Fetch (while calculating) average grade for course
+    avg = crsr.execute("SELECT SUM(grade * weight) / SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+    avg2 = crsr.execute("SELECT SUM(0.01 * grade * weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+    # Fetch the max possible grade for the course at that point
+    max = crsr.execute("SELECT SUM(weight) FROM assignments WHERE course_id = ? AND user_id = ?", (cId[0][0],session["user_id"])).fetchall()
+
+    return render_template("assignments.html", course_name=course_name[0][0], assignments=assignments, avg=avg[0][0], avg2=avg2[0][0], max=max[0][0])
