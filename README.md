@@ -93,3 +93,5 @@ As of now, I *do not* consider the project as finished. There are multiple holes
 Also, I somewhat learned the basics of Markdown for this very file.
 
 ツ
+
+### Current State: Many issues are still present, and features are missing, as detailed above.
