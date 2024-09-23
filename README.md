@@ -1,4 +1,4 @@
-# Peak [WIP]
+# Peak
 
 Peak is a simple and rudimentary gradebook, created using Python to link all the required files through Flask, a SQL database connection, and HTML for the layout of the pages, which in itself involved the usage of CSS, Bootstrap, and Jinja. Users can register and log in to this webapp, add new courses, set credit values, add assignments with corresponding grades and weights, see their average for a given course, their cumulative average for the course, and weighted and unweighted GPA's for the entire course list!
 
